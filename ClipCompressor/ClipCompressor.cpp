@@ -9,14 +9,14 @@
 #include <CommCtrl.h> // For progress bar   
 #define MAX_LOADSTRING 100
 
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+// Global Variables
+HINSTANCE hInst;                               
+WCHAR szTitle[MAX_LOADSTRING];                  
+WCHAR szWindowClass[MAX_LOADSTRING];            
 WCHAR g_selectedFilePath[260];				  //  save selected file path for compression
 HBRUSH hbrBackground;
 
-// Forward declarations of functions included in this code module:
+// Forward declarations of functions included in this code module
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -36,7 +36,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDC_CLIPCOMPRESSOR, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
-    // Perform application initialization:
+    // Perform application initialization
     if (!InitInstance(hInstance, nCmdShow))
     {
         return FALSE;
@@ -61,23 +61,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-    WNDCLASSEXW wcex;
+    WNDCLASSEXW wndClass;
 
-    wcex.cbSize = sizeof(WNDCLASSEX);
+    wndClass.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = WndProc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = 0;
-    wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CLIPCOMPRESSOR));
-    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
-    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_CLIPCOMPRESSOR);
-    wcex.lpszClassName = szWindowClass;
-    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wndClass.style = CS_HREDRAW | CS_VREDRAW;
+    wndClass.lpfnWndProc = WndProc;
+    wndClass.cbClsExtra = 0;
+    wndClass.cbWndExtra = 0;
+    wndClass.hInstance = hInstance;
+    wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CLIPCOMPRESSOR));
+    wndClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
+    wndClass.lpszMenuName = MAKEINTRESOURCEW(IDC_CLIPCOMPRESSOR);
+    wndClass.lpszClassName = szWindowClass;
+    wndClass.hIconSm = LoadIcon(wndClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
-    return RegisterClassExW(&wcex);
+    return RegisterClassExW(&wndClass);
 }
 
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
@@ -85,12 +85,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     hInst = hInstance; // Store instance handle in global variable
     int width = 310;
     int height = 340;
-    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+    HWND mainWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         960, 620, width, height, nullptr, nullptr, hInstance, nullptr);
 
     HWND hProgressBar = CreateWindowEx(0, PROGRESS_CLASS, NULL,
         WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
-        10, 200, 275, 30, hWnd, (HMENU)IDC_PROGRESS_BAR, hInstance, NULL);
+        10, 200, 275, 30, mainWnd, (HMENU)IDC_PROGRESS_BAR, hInstance, NULL);
     ShowWindow(hProgressBar, SW_HIDE);  // Hide progress bar initially
 
 
@@ -99,45 +99,36 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     // Browse button
     HWND hButtonBrowse = CreateWindowW(L"BUTTON", L"Browse",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        220, 40, 65, 30, hWnd, (HMENU)IDC_BUTTON_BROWSE, hInstance, NULL);
+        220, 40, 65, 30, mainWnd, (HMENU)IDC_BUTTON_BROWSE, hInstance, NULL);
 
     // text box to display filename
     HWND hStaticFilename = CreateWindowW(L"STATIC", L"",
         WS_VISIBLE | WS_CHILD | SS_LEFT,
-        10, 40, 200, 30, hWnd, (HMENU)IDC_STATIC_FILENAME, hInstance, NULL);
+        10, 40, 200, 30, mainWnd, (HMENU)IDC_STATIC_FILENAME, hInstance, NULL);
 
     // editable text box for output filename
     HWND hEditOutputFilename = CreateWindowW(L"EDIT", L"",
         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
-        10, 120, 275, 30, hWnd, (HMENU)IDC_EDIT_OUTPUT_FILENAME, hInstance, NULL);
+        10, 120, 275, 30, mainWnd, (HMENU)IDC_EDIT_OUTPUT_FILENAME, hInstance, NULL);
 
     // compression button
     HWND hButtonCompress = CreateWindowW(L"BUTTON", L"Compress",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-        10, 160, 100, 30, hWnd, (HMENU)IDC_BUTTON_COMPRESS, hInstance, NULL);
+        10, 160, 100, 30, mainWnd, (HMENU)IDC_BUTTON_COMPRESS, hInstance, NULL);
 
-    if (!hWnd)
+    if (!mainWnd)
     {
         return FALSE;
     }
 
-    ShowWindow(hWnd, nCmdShow);
-    UpdateWindow(hWnd);
+    ShowWindow(mainWnd, nCmdShow);
+    UpdateWindow(mainWnd);
 
     return TRUE;
 }
 
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-//
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -157,7 +148,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case IDC_BUTTON_BROWSE:
         {
-            OPENFILENAME ofn;       // common dialog box structure
+            OPENFILENAME ofn;
             WCHAR selFile[260];       // buffer for selected file name
 
             // Initialize OPENFILENAME
@@ -211,7 +202,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WCHAR outputFilePath[260];
             GetWindowText(GetDlgItem(hWnd, IDC_EDIT_OUTPUT_FILENAME), outputFilePath, 260);
 
-            // Check if the file already exists
+            // Check if the file already exists, overwrite warning
             if (PathFileExists(outputFilePath)) {
                 int msgboxID = MessageBox(
                     hWnd,
@@ -269,8 +260,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         TextOut(hdc, 10, 20, text1, wcslen(text1));
         const wchar_t* text2 = L"Output file name:";
         TextOut(hdc, 10, 100, text2, wcslen(text2));
-        //const wchar_t* text3 = L"Additional line of text:";
-        //TextOut(hdc, 10, 180, text3, wcslen(text3));
 
         EndPaint(hWnd, &ps);
     }
