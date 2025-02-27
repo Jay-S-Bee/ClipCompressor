@@ -71,10 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\libraries\ffmpeg\lib;C:\libraries\ffmpeg\include;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\libraries\ffmpeg\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\libraries\ffmpeg\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>C:\libraries\ffmpeg\lib;C:\libraries\ffmpeg\include;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\libraries\ffmpeg\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\libraries\ffmpeg\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -127,6 +129,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\libraries\ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

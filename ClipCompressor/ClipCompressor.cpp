@@ -14,7 +14,8 @@ HINSTANCE hInst;
 WCHAR szTitle[MAX_LOADSTRING];                  
 WCHAR szWindowClass[MAX_LOADSTRING];            
 WCHAR g_selectedFilePath[260];				  //  save selected file path for compression
-HBRUSH hbrBackground;
+HWND presetBox, check1, check2, check3;
+
 
 // Forward declarations of functions included in this code module
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -42,14 +43,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLIPCOMPRESSOR));
+    HACCEL accelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CLIPCOMPRESSOR));
 
     MSG msg;
 
     // Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        if (!TranslateAccelerator(msg.hwnd, accelTable, &msg))
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -72,7 +73,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wndClass.hInstance = hInstance;
     wndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CLIPCOMPRESSOR));
     wndClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
+    wndClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2); //possibly change or remove this
     wndClass.lpszMenuName = MAKEINTRESOURCEW(IDC_CLIPCOMPRESSOR);
     wndClass.lpszClassName = szWindowClass;
     wndClass.hIconSm = LoadIcon(wndClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -83,38 +84,54 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     hInst = hInstance; // Store instance handle in global variable
-    int width = 310;
-    int height = 340;
+    int width = 600;
+    int height = 400;
     HWND mainWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         960, 620, width, height, nullptr, nullptr, hInstance, nullptr);
 
-    HWND hProgressBar = CreateWindowEx(0, PROGRESS_CLASS, NULL,
+    HWND progressBar = CreateWindowEx(0, PROGRESS_CLASS, NULL,
         WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
         10, 200, 275, 30, mainWnd, (HMENU)IDC_PROGRESS_BAR, hInstance, NULL);
-    ShowWindow(hProgressBar, SW_HIDE);  // Hide progress bar initially
-
-
-    hbrBackground = CreateSolidBrush(RGB(160, 160, 160));
+    ShowWindow(progressBar, SW_HIDE);  // Hide progress bar initially
 
     // Browse button
-    HWND hButtonBrowse = CreateWindowW(L"BUTTON", L"Browse",
+    HWND buttonBrowse = CreateWindowW(L"BUTTON", L"Browse",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
         220, 40, 65, 30, mainWnd, (HMENU)IDC_BUTTON_BROWSE, hInstance, NULL);
 
     // text box to display filename
-    HWND hStaticFilename = CreateWindowW(L"STATIC", L"",
+    HWND textFilename = CreateWindowW(L"STATIC", L"",
         WS_VISIBLE | WS_CHILD | SS_LEFT,
         10, 40, 200, 30, mainWnd, (HMENU)IDC_STATIC_FILENAME, hInstance, NULL);
 
     // editable text box for output filename
-    HWND hEditOutputFilename = CreateWindowW(L"EDIT", L"",
+    HWND editOutputName = CreateWindowW(L"EDIT", L"",
         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT,
         10, 120, 275, 30, mainWnd, (HMENU)IDC_EDIT_OUTPUT_FILENAME, hInstance, NULL);
 
     // compression button
-    HWND hButtonCompress = CreateWindowW(L"BUTTON", L"Compress",
+    HWND buttonCompress = CreateWindowW(L"BUTTON", L"Compress",
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
         10, 160, 100, 30, mainWnd, (HMENU)IDC_BUTTON_COMPRESS, hInstance, NULL);
+
+    // Create ComboBox to select compression presets
+    presetBox = CreateWindowW(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
+        410, 17, 100, 100, mainWnd, (HMENU)IDC_PRESETBOX, hInstance, NULL);
+
+    // Add presets to the ComboBox
+    SendMessage(presetBox, CB_ADDSTRING, 0, (LPARAM)L"Preset 1");
+    SendMessage(presetBox, CB_ADDSTRING, 0, (LPARAM)L"Preset 2");
+    SendMessage(presetBox, CB_ADDSTRING, 0, (LPARAM)L"Preset 3");
+
+    // Create Checkboxes for preset options
+    check1 = CreateWindowW(L"BUTTON", L"Opt1", WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
+        300, 80, 50, 30, mainWnd, (HMENU)IDC_CHECK1, hInstance, NULL);
+
+    check2 = CreateWindowW(L"BUTTON", L"Opt2", WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
+        355, 80, 50, 30, mainWnd, (HMENU)IDC_CHECK2, hInstance, NULL);
+
+    check3 = CreateWindowW(L"BUTTON", L"Opt3", WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
+        410, 80, 50, 30, mainWnd, (HMENU)IDC_CHECK3, hInstance, NULL);
 
     if (!mainWnd)
     {
@@ -239,33 +256,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
-
-    case WM_CTLCOLORSTATIC:
-    case WM_CTLCOLOREDIT:
-    {
-        HDC hdcStatic = (HDC)wParam;
-        SetBkMode(hdcStatic, TRANSPARENT);
-        // SetBkColor(hdcStatic, RGB(160, 160, 160)); 
-        return (INT_PTR)hbrBackground;
-    }
-    break;
-
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
+       // hbrBackground = CreateSolidBrush(RGB(160, 160, 20));
         SetBkMode(hdc, TRANSPARENT);
+        //SetBkColor(hdc, DARK_BACKGROUND);
+       // SetTextColor(hdc, DARK_TEXT); // not in use until fix dark mode
 
         const wchar_t* text1 = L"File to be compressed:";
         TextOut(hdc, 10, 20, text1, wcslen(text1));
         const wchar_t* text2 = L"Output file name:";
         TextOut(hdc, 10, 100, text2, wcslen(text2));
+        const wchar_t* text3 = L"Setting presets:";
+        TextOut(hdc, 300, 20, text3, wcslen(text3));
+        const wchar_t* text4 = L"Custom Settings:";
+        TextOut(hdc, 300, 50, text4, wcslen(text4));
 
         EndPaint(hWnd, &ps);
     }
     break;
     case WM_DESTROY:
-        DeleteObject(hbrBackground); // Clean up the brush
         PostQuitMessage(0);
         break;
     default:
@@ -276,20 +288,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 // Updating Progress Bar Function
 void UpdateProgress(HWND hWnd, int progress, bool& isCompressionInProgress) {
-    HWND hProgressBar = GetDlgItem(hWnd, IDC_PROGRESS_BAR);
+    HWND progressBar = GetDlgItem(hWnd, IDC_PROGRESS_BAR);
 
     // Show progress bar when compression starts
     if (!isCompressionInProgress && progress > 0) {
-        ShowWindow(hProgressBar, SW_SHOW);
+        ShowWindow(progressBar, SW_SHOW);
         isCompressionInProgress = true;    //  Compression is in progress
     }
 
     // Hide progress bar when compression finishes
     if (progress == 100) {
-        ShowWindow(hProgressBar, SW_HIDE);
+        ShowWindow(progressBar, SW_HIDE);
         isCompressionInProgress = false;   // Reset bool after compression finishes
     }
-    SendMessage(hProgressBar, PBM_SETPOS, (WPARAM)progress, 0);    // Update progress bar during compression
+    SendMessage(progressBar, PBM_SETPOS, (WPARAM)progress, 0);    // Update progress bar during compression
 }
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)

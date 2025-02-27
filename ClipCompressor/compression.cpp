@@ -62,7 +62,7 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
     AVCodecContext* vidEncoderCont = avcodec_alloc_context3(videoEncoder);
 
     // Set bitrate (testing to get below 10MB)
-    vidEncoderCont->bit_rate = 500000;  // Set to target video bitrate
+    vidEncoderCont->bit_rate = 1000000;  // Set to target video bitrate
     vidEncoderCont->rc_min_rate = vidEncoderCont->bit_rate;  
     vidEncoderCont->rc_max_rate = vidEncoderCont->bit_rate;  
     vidEncoderCont->rc_buffer_size = vidEncoderCont->bit_rate * 1.5;
@@ -169,8 +169,6 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
     //  Debug output frame count
     std::wstring frameCountStr = L"Total frames processed: " + std::to_wstring(frameCount) + L"\n";
     OutputDebugString(frameCountStr.c_str());
-
-    MessageBox(hWnd, L"File successfully compressed!", L"Compression Complete", MB_OK | MB_ICONINFORMATION);
     UpdateProgress(hWnd, 100, isCompressionStarted);  // Update the progress bar to 100%
 
     // Cleanup
@@ -184,6 +182,7 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
     av_frame_free(&scaledFrame);
     av_packet_free(&packet);
 
+    MessageBox(hWnd, L"File successfully compressed!", L"Compression Complete", MB_OK | MB_ICONINFORMATION);
     OutputDebugString(L"Processing finished!\n");
 
 }

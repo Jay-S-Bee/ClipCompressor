@@ -21,6 +21,14 @@
 #define IDC_BUTTON_COMPRESS 204
 #define IDD_PROGRESS_DIALOG 205
 #define IDC_PROGRESS_BAR    206
+#define IDC_PRESETBOX		207
+#define IDC_CHECK1			208
+#define IDC_CHECK2			209
+#define IDC_CHECK3			210
+#define DARK_BACKGROUND RGB(30, 30, 30)  // Dark background color
+#define DARK_TEXT RGB(255, 255, 255)     // White text color
+#define DARK_BUTTON_BACKGROUND RGB(50, 50, 50)  // Dark button background
+#define DARK_BUTTON_TEXT RGB(255, 255, 255)     // Light button text
 #endif
 // Next default values for new objects
 //
