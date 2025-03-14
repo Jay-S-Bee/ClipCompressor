@@ -97,10 +97,10 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
 
     // Set audio bitrate
     audEncoderCont->bit_rate = audioBitrate;
-    audEncoderCont->sample_rate = 44100;
+	audEncoderCont->sample_rate = 48000; // 48kHz sample rate NEEDED for correct Discord playback
     av_channel_layout_default(&audEncoderCont->ch_layout, 2);
     audEncoderCont->ch_layout.nb_channels = av_popcount64(audEncoderCont->ch_layout.u.mask);
-    audEncoderCont->sample_fmt = AV_SAMPLE_FMT_FLTP; // Set to a common format like AV_SAMPLE_FMT_FLTP
+    audEncoderCont->sample_fmt = AV_SAMPLE_FMT_FLTP; 
     avcodec_open2(audEncoderCont, audioEncoder, nullptr);
 
     // Output file setup
