@@ -54,13 +54,13 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
     // Calculate the duration of the video in seconds
     int64_t duration = inputFormat->duration / AV_TIME_BASE;
 
-	// Calculate the target bitrate for file (temporary until custom settings are implemented)
-	int64_t targetSize = 9 * 1024 * 1024;  // 9MB in bytes (10 causes file to be larger than 10MB)
+    // Calculate the target bitrate for file (temporary until custom settings are implemented)
+    int64_t targetSize = 9 * 1024 * 1024;  // 9MB in bytes (10 causes file to be larger than 10MB)
     int targetBitrate = static_cast<int>((targetSize * 8) / duration);  // in bits per second
 
     // Allocate bitrates for video and audio
-    int videoBitrate = static_cast<int>(targetBitrate * 0.7);  // % of total bitrate
-    int audioBitrate = static_cast<int>(targetBitrate * 0.3);
+    int videoBitrate = static_cast<int>(targetBitrate * 0.8);  // % of total bitrate
+    int audioBitrate = static_cast<int>(targetBitrate * 0.2);
 
     // Video Decoder Setup
     const AVCodec* vDecoder = avcodec_find_decoder(inputFormat->streams[vidStreamIndex]->codecpar->codec_id);
@@ -182,7 +182,7 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
                 }
             }
         }
-		// Audio processing
+        // Audio processing
         else if (packet->stream_index == audioStreamIndex && audioOutStream != nullptr) {
             if (avcodec_send_packet(audDecoderCont, packet) < 0) {
                 OutputDebugString(L"Error sending audio packet for decoding.\n");
