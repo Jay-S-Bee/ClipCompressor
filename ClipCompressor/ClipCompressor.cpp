@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <iostream>
 #include <CommCtrl.h> // For progress bar   
+#include <Shellapi.h> // For DragAcceptFiles
 #define MAX_LOADSTRING 100
 
 // Global Variables
@@ -88,6 +89,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     int height = 400;
     HWND mainWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         960, 620, width, height, nullptr, nullptr, hInstance, nullptr);
+    DragAcceptFiles(mainWnd, TRUE);
 
     HWND progressBar = CreateWindowEx(0, PROGRESS_CLASS, NULL,
         WS_CHILD | WS_VISIBLE | PBS_SMOOTH,
@@ -216,8 +218,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         case IDC_BUTTON_COMPRESS:
         {
+            WCHAR outputFileName[260];
+            GetWindowText(GetDlgItem(hWnd, IDC_EDIT_OUTPUT_FILENAME), outputFileName, 260);
+
             WCHAR outputFilePath[260];
-            GetWindowText(GetDlgItem(hWnd, IDC_EDIT_OUTPUT_FILENAME), outputFilePath, 260);
+            wcscpy_s(outputFilePath, g_selectedFilePath);
+            PathRemoveFileSpec(outputFilePath);
+            PathAppend(outputFilePath, outputFileName);
 
             // Check if the file already exists, overwrite warning
             if (PathFileExists(outputFilePath)) {
@@ -237,7 +244,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WideCharToMultiByte(CP_ACP, 0, g_selectedFilePath, -1, inputFile, 260, NULL, NULL);
             WideCharToMultiByte(CP_ACP, 0, outputFilePath, -1, outputFile, 260, NULL, NULL);
 
-
             // Debugging messages to confirm file paths
             OutputDebugString(L"Input File: ");
             OutputDebugString(g_selectedFilePath);
@@ -247,7 +253,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             OutputDebugString(L"\n");
             OutputDebugString(L"Starting compression process\n");
 
-            long targetSizeMB = 10; // Set target file size in MB (currently unused)
             ProcessVideo(inputFile, outputFile, hWnd);
         }
         break;
@@ -256,11 +261,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
+   case WM_DROPFILES:
+   {
+       HDROP fileDrop = (HDROP)wParam;
+       WCHAR selFile[260];
+       DragQueryFile(fileDrop, 0, selFile, 260);
+       DragFinish(fileDrop);
+
+       WCHAR* fileName = PathFindFileName(selFile);
+       SetWindowText(GetDlgItem(hWnd, IDC_STATIC_FILENAME), fileName);
+       wcscpy_s(g_selectedFilePath, selFile);   // save selected file path for compression
+
+       WCHAR outputFileName[260];
+       wcscpy_s(outputFileName, fileName);
+       PathRemoveExtension(outputFileName);
+       wcscat_s(outputFileName, L"_Compressed.mp4"); //add suffix to prevent overwriting the original file
+
+       SetWindowText(GetDlgItem(hWnd, IDC_EDIT_OUTPUT_FILENAME), outputFileName); // Second text box that is editable
+
+       // Debugging message to confirm file selection
+       OutputDebugString(L"Selected File: ");
+       OutputDebugString(selFile);
+       OutputDebugString(L"\n");
+   }
+   break;
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-       // hbrBackground = CreateSolidBrush(RGB(160, 160, 20));
         SetBkMode(hdc, TRANSPARENT);
         //SetBkColor(hdc, DARK_BACKGROUND);
        // SetTextColor(hdc, DARK_TEXT); // not in use until fix dark mode

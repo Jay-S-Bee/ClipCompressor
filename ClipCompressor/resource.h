@@ -28,7 +28,6 @@
 #define DARK_BACKGROUND RGB(30, 30, 30)  // Dark background color
 #define DARK_TEXT RGB(255, 255, 255)     // White text color
 #define DARK_BUTTON_BACKGROUND RGB(50, 50, 50)  // Dark button background
-#define DARK_BUTTON_TEXT RGB(255, 255, 255)     // Light button text
 #endif
 // Next default values for new objects
 //
