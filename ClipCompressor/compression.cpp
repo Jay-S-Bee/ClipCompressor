@@ -14,7 +14,7 @@ extern "C" {
 
 bool isCompressionStarted = false;  // Flag to check if compression has started
 
-void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hWnd) {
+void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hWnd, const wchar_t* resolution) {
     avformat_network_init();
     OutputDebugString(L"Initialization started.\n");
 
@@ -72,14 +72,25 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
     const AVCodec* videoEncoder = avcodec_find_encoder(AV_CODEC_ID_H264);
     AVCodecContext* vidEncoderCont = avcodec_alloc_context3(videoEncoder);
 
+	// Choose resolution based on user selection
+    if (wcscmp(resolution, L"480p") == 0) {
+        vidEncoderCont->width = 854; 
+        vidEncoderCont->height = 480;
+    }
+    else if (wcscmp(resolution, L"720p") == 0) {
+        vidEncoderCont->width = 1280; 
+        vidEncoderCont->height = 720;
+    }
+    else if (wcscmp(resolution, L"1080p") == 0) {
+        vidEncoderCont->width = 1920; 
+        vidEncoderCont->height = 1080;
+    }
     // Set video bitrate
     vidEncoderCont->bit_rate = videoBitrate;
     vidEncoderCont->rc_min_rate = vidEncoderCont->bit_rate;
     vidEncoderCont->rc_max_rate = vidEncoderCont->bit_rate;
     vidEncoderCont->rc_buffer_size = vidEncoderCont->bit_rate * 1.5;
     vidEncoderCont->gop_size = 120;  // Keyframe every number of frames (higher more compression)
-    vidEncoderCont->width = 1280;
-    vidEncoderCont->height = 720;
     vidEncoderCont->time_base = inputFormat->streams[vidStreamIndex]->time_base;  // Copy timebase
     vidEncoderCont->framerate = vidDecoderCont->framerate; // Set framerate correctly
     vidEncoderCont->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -188,13 +199,13 @@ void ProcessVideo(const char* inputFilePath, const char* outputFilePath, HWND hW
                 OutputDebugString(L"Error sending audio packet for decoding.\n");
             }
             while (avcodec_receive_frame(audDecoderCont, frame) >= 0) {
-                OutputDebugString(L"Audio frame received for encoding.\n");
+               // OutputDebugString(L"Audio frame received for encoding.\n");
                 frame->pts = av_rescale_q(frame->pts, inputFormat->streams[audioStreamIndex]->time_base, audEncoderCont->time_base);
                 if (avcodec_send_frame(audEncoderCont, frame) < 0) {
                     OutputDebugString(L"Error sending audio frame for encoding.\n");
                 }
                 while (avcodec_receive_packet(audEncoderCont, packet) >= 0) {
-                    OutputDebugString(L"Audio packet received from encoder.\n");
+                   // OutputDebugString(L"Audio packet received from encoder.\n");
                     // Ensures correct timestamps for audio
                     packet->stream_index = audioOutStream->index;
                     av_packet_rescale_ts(packet, audEncoderCont->time_base, audioOutStream->time_base);

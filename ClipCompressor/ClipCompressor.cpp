@@ -15,7 +15,8 @@ HINSTANCE hInst;
 WCHAR szTitle[MAX_LOADSTRING];                  
 WCHAR szWindowClass[MAX_LOADSTRING];            
 WCHAR g_selectedFilePath[260];				  //  save selected file path for compression
-HWND presetBox, check1, check2, check3;
+HWND settingsBox, targetSizeSel, resSelect, encSelect;
+
 
 
 // Forward declarations of functions included in this code module
@@ -116,24 +117,27 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
         WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
         10, 160, 100, 30, mainWnd, (HMENU)IDC_BUTTON_COMPRESS, hInstance, NULL);
 
-    // Create ComboBox to select compression presets
-    presetBox = CreateWindowW(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
-        410, 17, 100, 100, mainWnd, (HMENU)IDC_PRESETBOX, hInstance, NULL);
+    // Settings Box
+    settingsBox = CreateWindowW(L"BUTTON", L"Settings", WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+        290, 10, 260, 280, mainWnd, NULL, hInstance, NULL);
 
-    // Add presets to the ComboBox
-    SendMessage(presetBox, CB_ADDSTRING, 0, (LPARAM)L"Preset 1");
-    SendMessage(presetBox, CB_ADDSTRING, 0, (LPARAM)L"Preset 2");
-    SendMessage(presetBox, CB_ADDSTRING, 0, (LPARAM)L"Preset 3");
+    // Number input for target file size
+    targetSizeSel = CreateWindowW(L"EDIT", L"10",
+        WS_VISIBLE | WS_CHILD | WS_BORDER | ES_LEFT | ES_NUMBER,
+        90, 20, 30, 20, settingsBox, NULL, hInstance, NULL);
 
-    // Create Checkboxes for preset options
-    check1 = CreateWindowW(L"BUTTON", L"Opt1", WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
-        300, 80, 50, 30, mainWnd, (HMENU)IDC_CHECK1, hInstance, NULL);
+    // Dropdown for different resolutions
+    resSelect = CreateWindowW(L"COMBOBOX", L"", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
+        90, 45, 100, 100, settingsBox, NULL, hInstance, NULL);
+    SendMessage(resSelect, CB_ADDSTRING, 0, (LPARAM)L"480p");
+    SendMessage(resSelect, CB_ADDSTRING, 0, (LPARAM)L"720p");
+    SendMessage(resSelect, CB_ADDSTRING, 0, (LPARAM)L"1080p");
+    SendMessage(resSelect, CB_SETCURSEL, 1, 0); // selects 720p on startup by default
 
-    check2 = CreateWindowW(L"BUTTON", L"Opt2", WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
-        355, 80, 50, 30, mainWnd, (HMENU)IDC_CHECK2, hInstance, NULL);
-
-    check3 = CreateWindowW(L"BUTTON", L"Opt3", WS_CHILD | WS_VISIBLE | BS_CHECKBOX,
-        410, 80, 50, 30, mainWnd, (HMENU)IDC_CHECK3, hInstance, NULL);
+    // Encoder (not final)
+    encSelect = CreateWindowW(L"BUTTON", L"h264",
+        WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
+        10, 90, 100, 30, settingsBox, NULL, hInstance, NULL);
 
     if (!mainWnd)
     {
@@ -244,6 +248,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WideCharToMultiByte(CP_ACP, 0, g_selectedFilePath, -1, inputFile, 260, NULL, NULL);
             WideCharToMultiByte(CP_ACP, 0, outputFilePath, -1, outputFile, 260, NULL, NULL);
 
+            // Retrieve the selected resolution
+            int resIndex = SendMessage(resSelect, CB_GETCURSEL, 0, 0);
+            WCHAR resolution[10];
+            SendMessage(resSelect, CB_GETLBTEXT, resIndex, (LPARAM)resolution);
+
             // Debugging messages to confirm file paths
             OutputDebugString(L"Input File: ");
             OutputDebugString(g_selectedFilePath);
@@ -253,7 +262,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             OutputDebugString(L"\n");
             OutputDebugString(L"Starting compression process\n");
 
-            ProcessVideo(inputFile, outputFile, hWnd);
+            ProcessVideo(inputFile, outputFile, hWnd, resolution);
         }
         break;
         default:
@@ -297,10 +306,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         TextOut(hdc, 10, 20, text1, wcslen(text1));
         const wchar_t* text2 = L"Output file name:";
         TextOut(hdc, 10, 100, text2, wcslen(text2));
-        const wchar_t* text3 = L"Setting presets:";
-        TextOut(hdc, 300, 20, text3, wcslen(text3));
-        const wchar_t* text4 = L"Custom Settings:";
-        TextOut(hdc, 300, 50, text4, wcslen(text4));
+        const wchar_t* text3 = L"Target Size:        MB";
+        TextOut(hdc, 300, 30, text3, wcslen(text3));
+        const wchar_t* text4 = L"Resolution:";
+        TextOut(hdc, 300, 60, text4, wcslen(text4));
 
         EndPaint(hWnd, &ps);
     }
